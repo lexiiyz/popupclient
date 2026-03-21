@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pop-up Book Admin CMS</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .page-editor { border-bottom: 1px solid #ddd; padding: 20px 0; }
+        .page-editor:last-child { border-bottom: none; }
+        label { display: block; margin-top: 10px; font-weight: bold; color: #555; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 100px; }
+        button { margin-top: 20px; padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #45a049; }
+        .status { margin-top: 10px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CMS Admin Panel</h1>
+        <div id="pages-container"></div>
+        <button id="save-btn">Save All Changes</button>
+        <div id="status" class="status"></div>
+    </div>
+    <script type="module" src="/src/admin.js"></script>
+</body>
+</html>

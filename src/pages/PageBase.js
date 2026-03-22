@@ -15,24 +15,24 @@ export class PageBase {
         this.group = new THREE.Group();
         this.group.visible = false;
         
-        // elements: raycast targets
+        // 1. Elements
         this.group.userData = { 
             elements: [], 
-            cinemaSign: null,   // legacy — first popup
+            cinemaSign: null,
             _animating: false 
         };
 
-        // Custom Sign Dimensions & Style (can be overridden by child classes)
+        // 2. Custom Sign Dimensions
         this.signW = null;
         this.signH = null;
         this.signStyle = {};
 
-        this._cinemaSignPool = [];  // Dynamic pool of CinemaSign instances
+        this._cinemaSignPool = [];
         this._setupCommon();
     }
 
+    // 3. Setup Common
     _setupCommon() {
-        // Subtle Spread Light
         const light = new THREE.PointLight(0xfff5d7, 0.35, 10);
         light.position.set(0, 4, 2);
         light.castShadow = true;
@@ -40,19 +40,12 @@ export class PageBase {
         this.group.add(light);
     }
 
-    /**
-     * Generate structured, deterministic positions for N pop-ups
-     * on the left half of the spread (2 columns x 3 rows).
-     */
+    // 4. Function untuk Positioning Sign
     _generatePositions(count) {
         const { W, H } = this;
         const positions = [];
         
-        // Grid setup for up to 6 pop-ups on the left page
-        // Column 1 (Left): -W * 0.7
-        // Column 2 (Right): -W * 0.3
-        // Rows: H * 0.15 (Top), H * 0.45 (Mid), H * 0.75 (Bottom)
-        
+        // Grid setup
         const grid = [
             { x: -W * 0.7, z: H * 0.15 }, { x: -W * 0.3, z: H * 0.15 },
             { x: -W * 0.7, z: H * 0.45 }, { x: -W * 0.3, z: H * 0.45 },

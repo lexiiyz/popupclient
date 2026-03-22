@@ -12,5 +12,13 @@ export default defineConfig({
     hmr: {
       clientPort: 443
     }
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        admin: 'admin.html'
+      }
+    }
   }
 });

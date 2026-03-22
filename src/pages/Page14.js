@@ -20,15 +20,15 @@ export class Page14 extends PageBase {
         
         // Middle Top = Bagan (component) with 1.png
         this.baganSign = new BaganSign(W * 1.4, H * 0.45, '/assets/images/page14/1.png');
-        this.baganSign.mesh.position.set(0, 1.2, -H * 0.15);
+        this.baganSign.mesh.position.set(0, 0.0001, H * 0.25);
         this.group.add(this.baganSign.mesh);
         this.group.userData.elements.push(this.baganSign.mesh);
         
         // Middle Bottom = 1 image 2.png dibuat lebar
-        const imgW = W * 1.8;
+        const imgW = W * 2.4;
         const imgH = H * 1.0;
         const imgMesh = this._createImageMesh(imgW, imgH, '/assets/images/page14/2.png');
-        imgMesh.position.set(0, 0.001, H * 0.25); 
+        imgMesh.position.set(0, 0.001, - H * 0.15); 
         this.group.add(imgMesh);
         this.group.userData.elements.push(imgMesh);
     }
@@ -63,5 +63,22 @@ export class Page14 extends PageBase {
         return [
             { x: 0, y: 0.05, z: H * 0.35 }
         ];
+    }
+
+    update(data) {
+        // Prevent PageBase from generating CinemaSigns since Page14 only has BaganSign
+        super.update({ ...data, popups: [] }); 
+
+        if (this.baganSign) {
+            const popupData = (data.popups && data.popups[0]) ? data.popups[0] : {};
+            this.baganSign.updateContent({
+                title: popupData.header || data.title || 'Bagan',
+                audio: popupData.audio || null,
+                text: popupData.text || '',
+                links: popupData.links || [],
+                qrcode: popupData.qrcode || '',
+                image: popupData.image || null
+            });
+        }
     }
 }

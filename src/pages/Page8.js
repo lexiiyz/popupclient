@@ -70,4 +70,25 @@ export class Page8 extends PageBase {
 
         return positions;
     }
+
+    update(data) {
+        let cinemaPopups = [];
+        let baganPopup = {};
+        if (data.popups && data.popups.length > 0) {
+            cinemaPopups = data.popups.slice(0, 2);
+            if (data.popups.length > 2) baganPopup = data.popups[2];
+        }
+        super.update({ ...data, popups: cinemaPopups });
+
+        if (this.baganSign) {
+            this.baganSign.updateContent({
+                title: baganPopup.header || data.title || 'Bagan',
+                audio: baganPopup.audio || null,
+                text: baganPopup.text || '',
+                links: baganPopup.links || [],
+                qrcode: baganPopup.qrcode || '',
+                image: baganPopup.image || null
+            });
+        }
+    }
 }

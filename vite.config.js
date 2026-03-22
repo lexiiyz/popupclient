@@ -7,7 +7,8 @@ export default defineConfig({
       '/api': 'http://localhost:3000',
       '/uploads': 'http://localhost:3000'
     },
-    allowedHosts: ['limberly-supercandid-caprice.ngrok-free.dev'],
+    allowedHosts: true, // Allow all hosts so localtunnel works
+    cors: true,
     hmr: {
       clientPort: 443
     }

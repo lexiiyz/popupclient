@@ -33,11 +33,13 @@ export class Page15 extends PageBase {
             { url: '/assets/images/page15/1.png', x: W * 0.6, y: H * 0.25, z: -H * 0.2,  scaleX: 1.3, scaleY: 0.4 }
         ];
 
+        this.bagans = [];
         assets.forEach(asset => {
             const bagan = new BaganSign(w * 0.5 * asset.scaleX, h * asset.scaleY, asset.url);
             bagan.mesh.position.set(asset.x, asset.y, asset.z);
             this.group.add(bagan.mesh);
             this.group.userData.elements.push(bagan.mesh);
+            this.bagans.push(bagan);
         });
     }
 
@@ -49,5 +51,26 @@ export class Page15 extends PageBase {
             { x: W * 0.7, y: 0.05, z: H * 0.25 }   
         ];
         return positions.slice(0, count);
+    }
+
+    update(data) {
+        let cinemaPopups = [];
+        let baganPopup = {};
+        if (data.popups && data.popups.length > 0) {
+            cinemaPopups = data.popups.slice(0, 3);
+            if (data.popups.length > 3) baganPopup = data.popups[3];
+        }
+        super.update({ ...data, popups: cinemaPopups });
+
+        if (this.bagans && this.bagans.length > 0) {
+            this.bagans[0].updateContent({
+                title: baganPopup.header || data.title || 'Bagan',
+                audio: baganPopup.audio || null,
+                text: baganPopup.text || '',
+                links: baganPopup.links || [],
+                qrcode: baganPopup.qrcode || '',
+                image: baganPopup.image || null
+            });
+        }
     }
 }

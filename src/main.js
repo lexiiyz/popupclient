@@ -158,6 +158,24 @@ export class App {
             this.book.goNext(() => this._updateUI());
         });
 
+        // Global Page Audio
+        const pageAudioBtn = document.getElementById('page-audio-btn');
+        const pageAudioPlayer = document.getElementById('page-audio-player');
+        if (pageAudioBtn && pageAudioPlayer) {
+            pageAudioBtn.addEventListener('click', () => {
+                if (pageAudioPlayer.paused) {
+                    pageAudioPlayer.play();
+                    pageAudioBtn.textContent = '⏸️ Jeda Audio';
+                } else {
+                    pageAudioPlayer.pause();
+                    pageAudioBtn.textContent = '🔊 Putar Audio Halaman';
+                }
+            });
+            pageAudioPlayer.addEventListener('ended', () => {
+                pageAudioBtn.textContent = '🔊 Putar Audio Halaman';
+            });
+        }
+
         // Raycasting for Text Cards
         this.renderer.domElement.addEventListener('pointerdown', (e) => {
             this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -173,7 +191,7 @@ export class App {
                 } else if (mesh.userData.type === 'media') {
                     this._showOverlay('media', mesh.userData.rawTitle, '', mesh.userData.links, mesh.userData.audio);
                 } else if (mesh.userData.type === 'popup') {
-                    this._showOverlay('popup', mesh.userData.rawTitle, mesh.userData.rawText, mesh.userData.links, mesh.userData.audio, mesh.userData.qrcode);
+                    this._showOverlay('popup', mesh.userData.rawTitle, mesh.userData.rawText, mesh.userData.links, mesh.userData.audio, mesh.userData.qrcode, mesh.userData.image);
                 }
             }
         });
@@ -194,7 +212,7 @@ export class App {
         });
     }
 
-    _showOverlay(type, title, text, links = [], audio = null, qrcode = '') {
+    _showOverlay(type, title, text, links = [], audio = null, qrcode = '', image = null) {
         const overlay = document.getElementById('text-overlay');
         const h2 = document.getElementById('overlay-title');
         const p = document.getElementById('overlay-text');
@@ -208,12 +226,21 @@ export class App {
             mediaContainer.style.display = 'none';
             p.textContent = text;
         } else if (type === 'popup') {
-            // CinemaSign popup: show text + links + QR code
-            p.style.display = text ? 'block' : 'none';
-            p.textContent = text;
             mediaContainer.style.display = 'block';
-
             let html = '';
+
+            if (image) {
+                p.style.display = 'none'; // hide standard text P element
+                html += `<div style="text-align:center;margin-bottom:20px;">
+                            <img src="${image}" alt="Bagan" style="max-width:100%;max-height:50vh;object-fit:contain;border-radius:8px;">
+                         </div>`;
+                if (text) {
+                    html += `<div style="text-align:left;margin-bottom:15px;font-size:16px;">${text}</div>`;
+                }
+            } else {
+                p.style.display = text ? 'block' : 'none';
+                p.textContent = text;
+            }
 
             // Links section
             if (links.length > 0) {
@@ -232,21 +259,32 @@ export class App {
 
             // Audio section
             if (audio) {
-                html += `<div style="margin-top:20px"><audio controls src="/assets/audio/${audio}"></audio></div>`;
+                const audioSrc = (audio.startsWith('/') || audio.startsWith('http')) ? audio : `/assets/audio/${audio}`;
+                html += `<div style="margin-top:20px"><audio class="popup-audio" data-src="${audioSrc}" controls src="${audioSrc}"></audio></div>`;
             }
 
             mediaContainer.innerHTML = html;
         } else {
             // Media card overlay
+            const audioSrc = audio ? ((audio.startsWith('/') || audio.startsWith('http')) ? audio : `/assets/audio/${audio}`) : '';
             p.style.display = 'none';
             mediaContainer.style.display = 'block';
             mediaContainer.innerHTML = `
                 <div class="link-list">
                     ${links.map(l => `<a href="${l}" target="_blank" class="link-item">${this._linkLabel(l)}</a>`).join('')}
                 </div>
-                ${audio ? `<div style="margin-top:20px"><audio controls src="/assets/audio/${audio}"></audio></div>` : ''}
+                ${audio ? `<div style="margin-top:20px"><audio class="popup-audio" data-src="${audioSrc}" controls src="${audioSrc}"></audio></div>` : ''}
             `;
         }
+
+        if (!this._audioTimes) this._audioTimes = {};
+        const audios = mediaContainer.querySelectorAll('audio.popup-audio');
+        audios.forEach(a => {
+            const srcKey = a.getAttribute('data-src');
+            if (srcKey && this._audioTimes[srcKey]) {
+                a.currentTime = this._audioTimes[srcKey];
+            }
+        });
 
         overlay.classList.add('active');
         this.controls.enabled = false;
@@ -256,6 +294,20 @@ export class App {
         const overlay = document.getElementById('text-overlay');
         if (overlay) overlay.classList.remove('active');
         this.controls.enabled = true;
+
+        // Auto-stop any playing audio in the popup and save its time
+        const mediaContainer = document.getElementById('overlay-media');
+        if (mediaContainer) {
+            if (!this._audioTimes) this._audioTimes = {};
+            const audios = mediaContainer.querySelectorAll('audio.popup-audio');
+            audios.forEach(a => {
+                a.pause();
+                const srcKey = a.getAttribute('data-src');
+                if (srcKey) {
+                    this._audioTimes[srcKey] = a.currentTime;
+                }
+            });
+        }
     }
 
     _updateUI() {
@@ -285,6 +337,34 @@ export class App {
         if (nextBtn) {
             nextBtn.style.display = this.book.isOpen ? '' : 'none';
             nextBtn.disabled = page >= 16;
+        }
+
+        const pageAudioBtn = document.getElementById('page-audio-btn');
+        const pageAudioPlayer = document.getElementById('page-audio-player');
+        
+        if (pageAudioBtn && pageAudioPlayer) {
+            if (this.book.isOpen && this.book._contentData && this.book._contentData[page - 1]) {
+                const currentData = this.book._contentData[page - 1];
+                if (currentData.audio) {
+                    pageAudioBtn.style.display = '';
+                    const expectedSuffix = (currentData.audio.startsWith('/') || currentData.audio.startsWith('http'))
+                        ? currentData.audio
+                        : '/assets/audio/' + currentData.audio;
+                        
+                    if (!pageAudioPlayer.src.endsWith(expectedSuffix)) {
+                        pageAudioPlayer.src = expectedSuffix;
+                        pageAudioBtn.textContent = '🔊 Putar Audio Halaman';
+                    }
+                } else {
+                    pageAudioBtn.style.display = 'none';
+                    pageAudioPlayer.pause();
+                    pageAudioPlayer.currentTime = 0;
+                }
+            } else {
+                pageAudioBtn.style.display = 'none';
+                pageAudioPlayer.pause();
+                pageAudioPlayer.currentTime = 0;
+            }
         }
     }
 

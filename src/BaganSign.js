@@ -1,16 +1,24 @@
 import * as THREE from 'three';
 
 export class BaganSign {
-    constructor(w, h, url = '/assets/images/page8/1.png') {
+    constructor(w, h, url = '/assets/images/page8/1.png', title = 'Bagan', text = '', audio = null) {
         this.w = w;
         this.h = h;
         
         // Group holds both frame and image
         this.mesh = new THREE.Group();
-        this.mesh.userData = {
+        
+        const interactData = {
             flatRotX: -Math.PI / 2,
-            standRotX: -0.05 // slight tilt back for better 3D effect
+            standRotX: -0.05, // slight tilt back for better 3D effect
+            type: 'popup',
+            rawTitle: title,
+            rawText: text,
+            audio: audio,
+            links: [],
+            qrcode: ''
         };
+        this.mesh.userData = interactData;
 
         // 1. Frame / Cardboard Backdrop
         const padding = 0.4; // extra width/height for the border
@@ -69,6 +77,7 @@ export class BaganSign {
         const imgMesh = new THREE.Mesh(imgGeom, imgMat);
         imgMesh.position.z = 0.045; // slightly in front of the inner border
         imgMesh.castShadow = true;
+        this.imgMesh = imgMesh; // Store a reference
         
         // Assemble group
         this.mesh.add(frameMesh);
@@ -76,5 +85,37 @@ export class BaganSign {
         this.mesh.add(leftFoot);
         this.mesh.add(rightFoot);
         this.mesh.add(imgMesh);
+
+        // Apply interactive data to all children for raycasting
+        this.mesh.children.forEach(child => {
+            child.userData = { ...this.mesh.userData };
+        });
+    }
+
+    updateContent(data) {
+        const interactData = {
+            flatRotX: -Math.PI / 2,
+            standRotX: -0.05,
+            type: 'popup',
+            rawTitle: data.title || data.header || 'Bagan',
+            rawText: data.text || '',
+            audio: data.audio || null,
+            links: data.links || [],
+            qrcode: data.qrcode || '',
+            image: data.image || null
+        };
+        this.mesh.userData = interactData;
+        this.mesh.children.forEach(child => {
+            child.userData = { ...interactData };
+        });
+
+        if (data.image && this.imgMesh) {
+            const loader = new THREE.TextureLoader();
+            loader.load(data.image, (tex) => {
+                tex.colorSpace = THREE.SRGBColorSpace;
+                this.imgMesh.material.map = tex;
+                this.imgMesh.material.needsUpdate = true;
+            });
+        }
     }
 }

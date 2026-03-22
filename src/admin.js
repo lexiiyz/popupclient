@@ -1,5 +1,6 @@
 const API_URL = '/api/content';
 const UPLOAD_URL = '/api/upload-qr';
+const UPLOAD_AUDIO_URL = '/api/upload-audio';
 const container = document.getElementById('pages-container');
 const status = document.getElementById('status');
 const saveBtn = document.getElementById('save-btn');
@@ -55,7 +56,10 @@ function renderEditor() {
                     </div>
                     <div>
                       <label>Background Audio:</label>
-                      <input type="text" value="${page.audio || ''}" placeholder="audio_file.mp3" onchange="updateData(${index}, 'audio', this.value)">
+                      <div style="display:flex;align-items:center;gap:10px;">
+                        <input type="file" accept="audio/*" style="font-size:12px;max-width:180px;" onchange="uploadAudio(${index}, 'bg', null, this)">
+                        ${page.audio ? `<span style="font-size:12px;color:green;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;" title="${page.audio}">&#10003; ${page.audio.split('/').pop()}</span> <button type="button" onclick="removeAudio(${index}, 'bg', null)" style="background:#ff7675;color:white;border:none;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:10px;">X</button>` : '<span style="font-size:12px;color:#999;">No audio</span>'}
+                      </div>
                     </div>
                   </div>`;
 
@@ -68,8 +72,7 @@ function renderEditor() {
             const hasQR = !!popup.qrcode;
             html += `<div style="margin-bottom:15px;padding:10px;background:white;border:1px solid #ccd6e0;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                          <span style="font-weight:bold;color:#8B0000;">#${pi + 1} Pop-up</span>
-                          <button type="button" onclick="removePopup(${index}, ${pi})" style="background:#ff7675;color:white;border:none;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">Hapus</button>
+                          <span style="font-weight:bold;color:#8B0000;">#${pi + 1} Pop-up (Layout Terkunci)</span>
                         </div>
                         
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
@@ -79,7 +82,10 @@ function renderEditor() {
                           </div>
                           <div>
                             <label style="font-size:12px;">Audio Pop-up:</label>
-                            <input type="text" style="width:100%;" value="${popup.audio || ''}" placeholder="audio_file.mp3" onchange="updatePopup(${index}, ${pi}, 'audio', this.value)">
+                            <div style="display:flex;align-items:center;gap:5px;">
+                              <input type="file" accept="audio/*" style="font-size:10px;max-width:140px;" onchange="uploadAudio(${index}, 'popup', ${pi}, this)">
+                              ${popup.audio ? `<span style="font-size:10px;color:green;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;" title="${popup.audio}">&#10003; ${popup.audio.split('/').pop()}</span> <button type="button" onclick="removeAudio(${index}, 'popup', ${pi})" style="background:#ff7675;color:white;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:9px;">X</button>` : '<span style="font-size:10px;color:#999;">None</span>'}
+                            </div>
                           </div>
                         </div>
 
@@ -102,9 +108,7 @@ function renderEditor() {
                       </div>`;
         });
 
-        const canAdd = (page.popups || []).length < 6;
         html += `</div>
-                  <button type="button" onclick="addPopup(${index})" style="background:${canAdd ? '#00b894' : '#ccc'};color:white;border:none;border-radius:4px;padding:8px 16px;cursor:${canAdd ? 'pointer' : 'default'};font-size:13px;width:100%;font-weight:bold;" ${canAdd ? '' : 'disabled'}>+ Tambah Elemen Pop-up</button>
                  </div>`;
 
         pageDiv.innerHTML = html;
@@ -120,15 +124,47 @@ window.updatePopup = (index, popupIndex, field, value) => {
     contentData[index].popups[popupIndex][field] = value;
 };
 
-window.addPopup = (index) => {
-    if (!contentData[index].popups) contentData[index].popups = [];
-    if (contentData[index].popups.length >= 6) return;
-    contentData[index].popups.push({ header: '', text: '', links: [], qrcode: '', audio: '' });
-    renderEditor();
+// Add/remove popup functions disabled to prevent layout breaks
+// (Layout is now fixed. Only content, links, QR, and audio can be edited)
+
+window.uploadAudio = async (pageIndex, type, popupIndex, input) => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('audio', file);
+    formData.append('page', contentData[pageIndex].page);
+    formData.append('type', type);
+    if (popupIndex !== null) formData.append('popupIndex', popupIndex);
+
+    try {
+        status.textContent = 'Uploading audio...';
+        status.style.color = 'blue';
+        const res = await fetch(UPLOAD_AUDIO_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.url) {
+            if (type === 'bg') {
+                contentData[pageIndex].audio = data.url;
+            } else if (type === 'popup') {
+                contentData[pageIndex].popups[popupIndex].audio = data.url;
+            }
+            renderEditor();
+            status.textContent = 'Audio uploaded!';
+            status.style.color = 'green';
+        }
+    } catch (err) {
+        console.error('Audio upload error:', err);
+        status.textContent = 'Error uploading audio.';
+        status.style.color = 'red';
+    }
 };
 
-window.removePopup = (index, popupIndex) => {
-    contentData[index].popups.splice(popupIndex, 1);
+window.removeAudio = (pageIndex, type, popupIndex) => {
+    if (type === 'bg') {
+        contentData[pageIndex].audio = '';
+    } else if (type === 'popup') {
+        contentData[pageIndex].popups[popupIndex].audio = '';
+    }
     renderEditor();
 };
 

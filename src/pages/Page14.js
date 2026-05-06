@@ -77,7 +77,8 @@ export class Page14 extends PageBase {
                 text: popupData.text || '',
                 links: popupData.links || [],
                 qrcode: popupData.qrcode || '',
-                image: popupData.image || null
+                image: popupData.image || null,
+                orderNum: popupData.orderNum || ''
             });
         }
     }

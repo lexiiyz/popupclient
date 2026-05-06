@@ -86,7 +86,8 @@ export class Page8 extends PageBase {
                 text: baganPopup.text || '',
                 links: baganPopup.links || [],
                 qrcode: baganPopup.qrcode || '',
-                image: baganPopup.image || null
+                image: baganPopup.image || null,
+                orderNum: baganPopup.orderNum || ''
             });
         }
     }

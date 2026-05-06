@@ -75,7 +75,11 @@ function renderEditor() {
                           <span style="font-weight:bold;color:#8B0000;">#${pi + 1} Pop-up (Layout Terkunci)</span>
                         </div>
                         
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+                        <div style="display:grid;grid-template-columns:0.5fr 1fr 1fr;gap:10px;margin-bottom:8px;">
+                          <div>
+                            <label style="font-size:12px;">Angka Urutan:</label>
+                            <input type="text" style="width:100%;text-align:center;" value="${popup.orderNum || ''}" placeholder="1" onchange="updatePopup(${index}, ${pi}, 'orderNum', this.value)">
+                          </div>
                           <div>
                             <label style="font-size:12px;">Header Teks:</label>
                             <input type="text" style="width:100%;" value="${popup.header || ''}" placeholder="Materi Utama" onchange="updatePopup(${index}, ${pi}, 'header', this.value)">

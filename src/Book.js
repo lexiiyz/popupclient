@@ -458,16 +458,21 @@ export class Book {
             g.visible = (i === idx);
             if (i === idx) {
                 g.userData._animating = true;
+                g.userData._foldPhase = 0; // 0→1 unfold progress
                 // Elements pop up from the center spine
                 if (g.userData.elements) {
                     g.userData.elements.forEach(el => {
                         if (el.userData.origX === undefined) {
                             el.userData.origX = el.position.x;
-                            el.userData.origZ = el.position.z; // Just in case
+                            el.userData.origY = el.position.y;
+                            el.userData.origZ = el.position.z;
                         }
-                        // Start fully flat at the center
+                        // Start fully flat at the spine, folded toward the corner
                         el.position.x = 0;
+                        el.position.y = 0;
+                        el.position.z = el.userData.origZ * 0.3; // Compress toward center-Z
                         el.rotation.x = el.userData.flatRotX;
+                        el.rotation.z = 0;
                         el.scale.y = 0.001;
                     });
                 }
@@ -478,6 +483,7 @@ export class Book {
     _hidePopup(idx) {
         if (this._popupGroups[idx]) {
             this._popupGroups[idx].userData._animating = false;
+            this._popupGroups[idx].userData._foldPhase = 1; // Start fold-down from fully open
         }
     }
 
@@ -500,6 +506,17 @@ export class Book {
         if (this._coverState === 'closing') {
             this._coverAngle = THREE.MathUtils.lerp(this._coverAngle, 0, 0.07);
             this._frontCoverPivot.rotation.z = this._coverAngle;
+
+            // Once cover sweeps past the spine (PI/2), hide the left page
+            // and pop-ups so nothing peeks out from under the cover
+            if (this._coverAngle < Math.PI / 2) {
+                this._leftPage.visible = false;
+                this._popupGroups.forEach(g => g.visible = false);
+            }
+            // Hide right page once cover is almost closed (covers right side)
+            if (this._coverAngle < Math.PI / 4) {
+                this._rightPage.visible = false;
+            }
 
             if (Math.abs(this._coverAngle) < 0.03) {
                 this._coverAngle = 0;
@@ -530,28 +547,65 @@ export class Book {
             }
         }
 
-        // V-fold pop-up animation
+        // Realistic corner-fold pop-up animation
         for (const grp of this._popupGroups) {
             if (!grp.visible) continue;
             const ud = grp.userData;
             const isOpen = ud._animating;
 
+            // Determine fold corner direction based on flip or cover state
+            // flipDir=1 → next page → fold toward left-top corner (-X, -Z)
+            // flipDir=-1 → prev page → fold toward right-top corner (+X, -Z)
+            // closing → fold toward right (+X)
+            const foldDirX = this._coverState === 'closing' ? 1 : (this._flipDir === 1 ? -1 : 1);
+
             ud.elements.forEach(el => {
                 if (el.userData.origX === undefined) {
                     el.userData.origX = el.position.x;
+                    el.userData.origY = el.position.y;
+                    el.userData.origZ = el.position.z;
                 }
 
-                const tgtRotX = isOpen ? el.userData.standRotX : el.userData.flatRotX;
-                el.rotation.x = THREE.MathUtils.lerp(el.rotation.x, tgtRotX, 0.1);
-                const progress = 1.0 - Math.abs(el.rotation.x - el.userData.standRotX) / (Math.PI / 2);
-                el.scale.y = Math.max(0.001, progress);
+                // Lerp speed — slightly staggered for a cascading paper feel
+                const lerpSpeed = 0.1;
 
-                // Animate X towards flip direction when closing, and back to origX when opening
-                let tgtX = isOpen ? el.userData.origX : (this._flipDir === 1 ? -6 : 6);
-                if (!isOpen && this._coverState === 'closing') {
-                    tgtX = 6;
+                if (isOpen) {
+                    // ── UNFOLDING: Elements fan out from spine to their positions ──
+                    const tgtRotX = el.userData.standRotX;
+                    el.rotation.x = THREE.MathUtils.lerp(el.rotation.x, tgtRotX, lerpSpeed);
+
+                    // Progress: 0 = fully flat, 1 = fully standing
+                    const progress = 1.0 - Math.abs(el.rotation.x - el.userData.standRotX) / (Math.PI / 2);
+                    el.scale.y = Math.max(0.001, progress);
+
+                    // Slide X, Y and Z from spine/center to original position
+                    el.position.x = THREE.MathUtils.lerp(el.position.x, el.userData.origX, lerpSpeed);
+                    el.position.y = THREE.MathUtils.lerp(el.position.y, el.userData.origY, lerpSpeed);
+                    el.position.z = THREE.MathUtils.lerp(el.position.z, el.userData.origZ, lerpSpeed);
+
+                    // Subtle paper-crease Z rotation that eases out as it opens
+                    const creaseAngle = (1 - progress) * foldDirX * 0.15;
+                    el.rotation.z = THREE.MathUtils.lerp(el.rotation.z, creaseAngle, lerpSpeed);
+
+                } else {
+                    // ── FOLDING: Elements collapse toward the corner ──
+                    const tgtRotX = el.userData.flatRotX;
+                    el.rotation.x = THREE.MathUtils.lerp(el.rotation.x, tgtRotX, lerpSpeed);
+
+                    const progress = 1.0 - Math.abs(el.rotation.x - el.userData.standRotX) / (Math.PI / 2);
+                    el.scale.y = Math.max(0.001, progress);
+
+                    // Target position: toward the spine corner in flip direction
+                    const tgtX = foldDirX * 5; // Slide toward the fold corner on X
+                    const tgtZ = el.userData.origZ * 0.2; // Compress toward center-Z (spine)
+                    el.position.x = THREE.MathUtils.lerp(el.position.x, tgtX, lerpSpeed);
+                    el.position.y = THREE.MathUtils.lerp(el.position.y, 0, lerpSpeed); // Drop to page surface
+                    el.position.z = THREE.MathUtils.lerp(el.position.z, tgtZ, lerpSpeed * 0.7);
+
+                    // Paper-crease rotation matching fold direction
+                    const creaseAngle = foldDirX * 0.25;
+                    el.rotation.z = THREE.MathUtils.lerp(el.rotation.z, creaseAngle, lerpSpeed);
                 }
-                el.position.x = THREE.MathUtils.lerp(el.position.x, tgtX, 0.1);
             });
         }
     }

@@ -5,6 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { Book } from './Book.js';
+import { initHelp } from './help.js';
 
 export class App {
     constructor() {
@@ -17,6 +18,7 @@ export class App {
         this._setupEvents();
         this._animate();
         this._fetchContent();
+        initHelp();
     }
 
     _setupRaycasting() {
@@ -144,8 +146,8 @@ export class App {
                 const btn = document.getElementById('open-btn');
                 if (btn) btn.style.display = 'none';
                 // Hide nav and panel during close
-                document.getElementById('prev-btn').style.display = 'none';
-                document.getElementById('next-btn').style.display = 'none';
+                const topRow = document.getElementById('nav-top-row');
+                if (topRow) topRow.style.display = 'none';
                 document.getElementById('page-content')?.classList.remove('active');
             }
         });
@@ -330,12 +332,15 @@ export class App {
         }
 
         // Nav buttons visibility
+        const topRow = document.getElementById('nav-top-row');
+        if (topRow) {
+            topRow.style.display = this.book.isOpen ? 'flex' : 'none';
+        }
+
         if (prevBtn) {
-            prevBtn.style.display = this.book.isOpen ? '' : 'none';
             prevBtn.disabled = page <= 1;
         }
         if (nextBtn) {
-            nextBtn.style.display = this.book.isOpen ? '' : 'none';
             nextBtn.disabled = page >= 16;
         }
 
@@ -343,7 +348,7 @@ export class App {
         const pageAudioPlayer = document.getElementById('page-audio-player');
         
         if (pageAudioBtn && pageAudioPlayer) {
-            if (this.book.isOpen && this.book._contentData && this.book._contentData[page - 1]) {
+            if (this.book.isOpen && page === 2 && this.book._contentData && this.book._contentData[page - 1]) {
                 const currentData = this.book._contentData[page - 1];
                 if (currentData.audio) {
                     pageAudioBtn.style.display = '';

@@ -136,6 +136,7 @@ export class PageBase {
                 ...data, // Keep page-level defaults
                 header: popup.header || '',
                 text: popup.text || '',
+                orderNum: popup.orderNum || '',
                 qrcode: popup.qrcode || (i === 0 ? data.qrcode : '') || '',
                 links: (popup.links && popup.links.length > 0) ? popup.links : (i === 0 ? (data.links || []) : [])
             };

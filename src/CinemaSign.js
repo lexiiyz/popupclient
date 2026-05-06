@@ -140,6 +140,35 @@ export class CinemaSign {
         const { ctx, cW, cH, style } = this;
         const margin = 28;
 
+        // Order Number Badge
+        if (data.orderNum) {
+            const badgeX = margin + 40;
+            const badgeY = margin + 40;
+            const badgeRadius = 24;
+
+            // Draw shadow/border
+            ctx.fillStyle = '#8B2500';
+            ctx.beginPath();
+            ctx.arc(badgeX, badgeY + 2, badgeRadius + 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw circle
+            ctx.fillStyle = '#D32F2F';
+            ctx.beginPath();
+            ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw text
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 24px Georgia, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(data.orderNum, badgeX, badgeY);
+            
+            // Reset textBaseline for the rest of the text
+            ctx.textBaseline = 'alphabetic';
+        }
+
         // Header
         ctx.fillStyle = style.headerColor;
         ctx.font = `bold ${style.headerFontSize}px Georgia, serif`;
@@ -149,6 +178,14 @@ export class CinemaSign {
         const headerMaxW = cW - (margin * 2) - 40;
         
         let nextY = this._wrap(ctx, headerText, cW / 2, margin + 45, headerMaxW, style.headerFontSize * 1.2);
+
+        // Hint text / Ikon petunjuk
+        ctx.fillStyle = '#D32F2F';
+        ctx.font = `italic bold ${Math.max(14, style.contentFontSize * 0.85)}px Georgia, serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('👆 Tekan untuk melihat detail', cW / 2, nextY - 15);
+        
+        nextY += 20;
 
         // Content text — if QR exists, use left portion only
         const hasQR = !!data.qrcode;

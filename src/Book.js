@@ -278,10 +278,20 @@ export class Book {
         const { texLeft, texRight, canvas, ctx, cW, cH } = this._getPaperTextures();
 
         // Left content
-        ctx.fillStyle = '#5C1A00';
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
 
         ctx.font = 'bold 52px serif'; ctx.textAlign = 'center';
         ctx.fillText(data.title || 'Materi Drama', cW / 4, 150);
+        
+        // Reset shadow for other text
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
 
         ctx.fillStyle = '#333';
         ctx.font = '30px serif'; ctx.textAlign = 'left';

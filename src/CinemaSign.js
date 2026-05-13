@@ -191,14 +191,52 @@ export class CinemaSign {
         const hasQR = !!data.qrcode;
         const textMaxW = hasQR ? (cW * 0.45) : (cW - (margin + 40) * 2 - 20);
 
-        ctx.fillStyle = style.contentColor;
-        ctx.font = `${style.contentFontSize}px Georgia, serif`;
-        ctx.textAlign = 'left';
-
         const textMargin = margin + 40;
         const contentStartY = Math.max(margin + 85, nextY + 5);
 
-        this._wrap(ctx, data.text || '', textMargin, contentStartY, textMaxW, style.contentFontSize * 1.5);
+        // Auto-shrink font size to fit within the sign
+        let fontSize = style.contentFontSize;
+        let lh = fontSize * 1.4;
+        ctx.font = `${fontSize}px Georgia, serif`;
+        
+        const maxAllowedHeight = cH - contentStartY - margin - 20; // 20px padding at bottom
+        
+        // Helper function to calculate height without drawing
+        const calcHeight = (text, maxWidth, lineH) => {
+            const paras = text.split('\n');
+            let total = 0;
+            for (const para of paras) {
+                let line = '';
+                const words = para.split(' ');
+                for (const word of words) {
+                    const test = line + word + ' ';
+                    if (ctx.measureText(test).width > maxWidth && line) {
+                        total += lineH;
+                        line = word + ' ';
+                    } else {
+                        line = test;
+                    }
+                }
+                total += lineH * 1.3;
+            }
+            return total;
+        };
+
+        let expectedHeight = calcHeight(data.text || '', textMaxW, lh);
+        
+        // Loop to shrink font until it fits, minimum 10px
+        while (expectedHeight > maxAllowedHeight && fontSize > 10) {
+            fontSize -= 1;
+            lh = fontSize * 1.4;
+            ctx.font = `${fontSize}px Georgia, serif`;
+            expectedHeight = calcHeight(data.text || '', textMaxW, lh);
+        }
+
+        ctx.fillStyle = style.contentColor;
+        ctx.font = `${fontSize}px Georgia, serif`;
+        ctx.textAlign = 'left';
+
+        this._wrap(ctx, data.text || '', textMargin, contentStartY, textMaxW, lh);
 
         this.texture.needsUpdate = true;
 

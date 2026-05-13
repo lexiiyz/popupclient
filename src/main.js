@@ -179,7 +179,7 @@ export class App {
         }
 
         // Raycasting for Text Cards
-        this.renderer.domElement.addEventListener('pointerdown', (e) => {
+        this.renderer.domElement.addEventListener('click', (e) => {
             this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 

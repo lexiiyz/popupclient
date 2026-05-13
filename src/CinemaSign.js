@@ -266,7 +266,7 @@ export class CinemaSign {
 
                 // Label
                 ctx.fillStyle = '#8B4513';
-                ctx.font = 'bold 13px Georgia, serif';
+                ctx.font = 'italic bold 13px Georgia, serif';
                 ctx.textAlign = 'center';
                 ctx.fillText('Pindai QR', qrX + qrSize / 2, qrY + qrSize + 18);
 

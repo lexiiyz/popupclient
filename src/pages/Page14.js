@@ -19,9 +19,9 @@ export class Page14 extends PageBase {
         const H = this.H;
         
         // Middle Top = Bagan (component) with 1.png
-        // Smaller and pushed back (z is negative to go "up" the page)
+        // Smaller and pushed back (z is negative), and raised on Y-axis
         this.baganSign = new BaganSign(W * 1.1, H * 0.35, '/assets/images/page14/1.png');
-        this.baganSign.mesh.position.set(0, 0.05, -H * 0.15);
+        this.baganSign.mesh.position.set(0, H * 0.35, -H * 0.15);
         this.group.add(this.baganSign.mesh);
         this.group.userData.elements.push(this.baganSign.mesh);
         

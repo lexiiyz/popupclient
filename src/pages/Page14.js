@@ -6,29 +6,30 @@ export class Page14 extends PageBase {
     constructor(w, h) {
         super(w, h);
         
-        // Custom Sign Dimensions
-        this.signW = this.W * 0.8;
+        // Custom Sign Dimensions for the 2 smaller signs
+        this.signW = this.W * 0.7;
         this.signH = this.H * 0.4;
         
         this.signStyle = {
-            headerFontSize: 28,
-            contentFontSize: 20
+            headerFontSize: 24,
+            contentFontSize: 18
         };
 
         const W = this.W;
         const H = this.H;
         
         // Middle Top = Bagan (component) with 1.png
-        this.baganSign = new BaganSign(W * 1.4, H * 0.45, '/assets/images/page14/1.png');
-        this.baganSign.mesh.position.set(0, 0.0001, H * 0.25);
+        // Smaller and pushed back (z is negative to go "up" the page)
+        this.baganSign = new BaganSign(W * 1.1, H * 0.35, '/assets/images/page14/1.png');
+        this.baganSign.mesh.position.set(0, 0.05, -H * 0.15);
         this.group.add(this.baganSign.mesh);
         this.group.userData.elements.push(this.baganSign.mesh);
         
-        // Middle Bottom = 1 image 2.png dibuat lebar
+        // Middle Bottom = 1 image 2.png
         const imgW = W * 2.4;
         const imgH = H * 1.0;
         const imgMesh = this._createImageMesh(imgW, imgH, '/assets/images/page14/2.png');
-        imgMesh.position.set(0, 0.001, - H * 0.15); 
+        imgMesh.position.set(0, 0.001, -H * 0.15); 
         this.group.add(imgMesh);
         this.group.userData.elements.push(imgMesh);
     }
@@ -60,14 +61,17 @@ export class Page14 extends PageBase {
 
     _generatePositions(count) {
         const { W, H } = this;
+        // Two positions side-by-side in front of the Bagan
         return [
-            { x: 0, y: 0.05, z: H * 0.35 }
+            { x: -W * 0.4, y: 0.05, z: H * 0.35 },
+            { x: W * 0.4, y: 0.05, z: H * 0.35 }
         ];
     }
 
     update(data) {
-        // Prevent PageBase from generating CinemaSigns since Page14 only has BaganSign
-        super.update({ ...data, popups: [] }); 
+        // Pass only the popups after index 0 to PageBase so it generates CinemaSigns for them
+        const extraPopups = (data.popups && data.popups.length > 1) ? data.popups.slice(1) : [];
+        super.update({ ...data, popups: extraPopups }); 
 
         if (this.baganSign) {
             const popupData = (data.popups && data.popups[0]) ? data.popups[0] : {};

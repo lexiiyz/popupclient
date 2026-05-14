@@ -222,11 +222,16 @@ export class App {
         if (!overlay || !h2 || !p || !mediaContainer) return;
 
         h2.textContent = title;
+
+        const formatText = (txt) => {
+            if (!txt) return '';
+            return txt.replace(/qr code/gi, "<i>$&</i>");
+        };
         
         if (type === 'text') {
             p.style.display = 'block';
             mediaContainer.style.display = 'none';
-            p.textContent = text;
+            p.innerHTML = formatText(text);
         } else if (type === 'popup') {
             mediaContainer.style.display = 'block';
             let html = '';
@@ -237,11 +242,11 @@ export class App {
                             <img src="${image}" alt="Bagan" style="max-width:100%;max-height:50vh;object-fit:contain;border-radius:8px;">
                          </div>`;
                 if (text) {
-                    html += `<div style="text-align:left;margin-bottom:15px;font-size:16px;">${text}</div>`;
+                    html += `<div style="text-align:left;margin-bottom:15px;font-size:16px;">${formatText(text)}</div>`;
                 }
             } else {
                 p.style.display = text ? 'block' : 'none';
-                p.textContent = text;
+                p.innerHTML = formatText(text);
             }
 
             // Links section

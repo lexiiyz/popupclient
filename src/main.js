@@ -254,7 +254,7 @@ export class App {
             // QR Code section
             if (qrcode) {
                 html += `<div style="margin-top:20px;text-align:center;">
-                    <p style="font-weight:bold;color:#8B4513;margin-bottom:10px;">📱 Pindai QR Code:</p>
+                    <p style="font-weight:bold;font-style:italic;color:#8B4513;margin-bottom:10px;">📱 Pindai QR Code:</p>
                     <img src="${qrcode}" alt="QR Code" style="max-width:200px;max-height:200px;border:3px solid #d4c5a1;border-radius:8px;background:white;padding:8px;">
                 </div>`;
             }

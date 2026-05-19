@@ -130,4 +130,10 @@ export class ActivitySign {
             y += lh * 1.3;
         }
     }
+
+    updateContent(data) {
+        this.title = data.header || data.title || "AKTIVITAS";
+        this.textContent = data.text || "";
+        this._drawBoard();
+    }
 }

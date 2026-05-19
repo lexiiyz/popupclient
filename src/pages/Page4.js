@@ -32,4 +32,14 @@ export class Page4 extends PageBase {
         ];
         return positions.slice(0, count);
     }
+
+    update(data) {
+        const extraPopups = (data.popups && data.popups.length > 1) ? data.popups.slice(1) : [];
+        super.update({ ...data, popups: extraPopups }); 
+
+        if (this.activitySign) {
+            const popupData = (data.popups && data.popups[0]) ? data.popups[0] : {};
+            this.activitySign.updateContent(popupData);
+        }
+    }
 }

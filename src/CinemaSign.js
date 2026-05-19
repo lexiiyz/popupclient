@@ -188,8 +188,9 @@ export class CinemaSign {
         nextY += 20;
 
         // Content text — if QR exists, use left portion only
-        const hasQR = !!data.qrcode;
-        const textMaxW = hasQR ? (cW * 0.45) : (cW - (margin + 40) * 2 - 20);
+        const hasQRLink = data.links && data.links.length > 0;
+        const finalQR = data.qrcode || (hasQRLink ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.links[0])}` : '');
+        const textMaxW = finalQR ? (cW * 0.45) : (cW - (margin + 40) * 2 - 20);
 
         const textMargin = margin + 40;
         const contentStartY = Math.max(margin + 85, nextY + 5);
@@ -244,7 +245,7 @@ export class CinemaSign {
         this.mesh.userData.rawText = data.text || '';
 
         // Load and draw QR code image if available
-        if (hasQR) {
+        if (finalQR) {
             const qrImg = new Image();
             qrImg.crossOrigin = 'anonymous';
             qrImg.onload = () => {
@@ -272,7 +273,7 @@ export class CinemaSign {
 
                 this.texture.needsUpdate = true;
             };
-            qrImg.src = data.qrcode;
+            qrImg.src = finalQR;
         }
     }
 

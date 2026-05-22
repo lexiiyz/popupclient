@@ -1,6 +1,7 @@
 const API_URL = '/api/content';
 const UPLOAD_URL = '/api/upload-qr';
 const UPLOAD_AUDIO_URL = '/api/upload-audio';
+const UPLOAD_IMAGE_URL = '/api/upload-image';
 const container = document.getElementById('pages-container');
 const status = document.getElementById('status');
 const saveBtn = document.getElementById('save-btn');
@@ -96,7 +97,7 @@ function renderEditor() {
                         <label style="font-size:12px;">Konten Teks:</label>
                         <textarea style="height:50px;width:100%;margin-bottom:8px;" onchange="updatePopup(${index}, ${pi}, 'text', this.value)">${popup.text || ''}</textarea>
                         
-                        <div style="display:grid;grid-template-columns: 1.2fr 1fr; gap:10px;">
+                        <div style="display:grid;grid-template-columns: 1.2fr 1fr 1fr; gap:10px;">
                           <div>
                             <label style="font-size:12px;">Link khusus (satu per baris):</label>
                             <textarea style="height:70px;width:100%;font-size:11px;" onchange="updatePopup(${index}, ${pi}, 'links', this.value.split('\\n').filter(l => l.trim() !== ''))">${(popup.links || []).join('\n')}</textarea>
@@ -106,6 +107,13 @@ function renderEditor() {
                             <div style="display:flex;flex-direction:column;gap:5px;">
                                <input type="file" accept="image/*" style="font-size:10px;" onchange="uploadQR(${index}, ${pi}, this)">
                                ${hasQR ? `<img src="${popup.qrcode}" style="width:50px;height:50px;object-fit:contain;border:1px solid #ccc;border-radius:4px;">` : '<span style="color:#999;font-size:10px;">No QR</span>'}
+                            </div>
+                          </div>
+                          <div>
+                            <label style="font-size:12px;">Gambar Bagan (BaganSign):</label>
+                            <div style="display:flex;flex-direction:column;gap:5px;">
+                               <input type="file" accept="image/*" style="font-size:10px;" onchange="uploadImage(${index}, ${pi}, this)">
+                               ${popup.image ? `<div style="display:flex;gap:5px;align-items:center;"><img src="${popup.image}" style="width:50px;height:50px;object-fit:contain;border:1px solid #ccc;border-radius:4px;"> <button type="button" onclick="removeImage(${index}, ${pi})" style="background:#ff7675;color:white;border:none;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:9px;">Hapus</button></div>` : '<span style="color:#999;font-size:10px;">No Image</span>'}
                             </div>
                           </div>
                         </div>
@@ -197,6 +205,38 @@ window.uploadQR = async (pageIndex, popupIndex, input) => {
         status.textContent = 'Error uploading QR code.';
         status.style.color = 'red';
     }
+};
+
+window.uploadImage = async (pageIndex, popupIndex, input) => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('page', contentData[pageIndex].page);
+    formData.append('popupIndex', popupIndex);
+
+    try {
+        status.textContent = 'Uploading image...';
+        status.style.color = 'blue';
+        const res = await fetch(UPLOAD_IMAGE_URL, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.url) {
+            contentData[pageIndex].popups[popupIndex].image = data.url;
+            renderEditor();
+            status.textContent = 'Image uploaded!';
+            status.style.color = 'green';
+        }
+    } catch (err) {
+        console.error('Image upload error:', err);
+        status.textContent = 'Error uploading image.';
+        status.style.color = 'red';
+    }
+};
+
+window.removeImage = (pageIndex, popupIndex) => {
+    contentData[pageIndex].popups[popupIndex].image = '';
+    renderEditor();
 };
 
 saveBtn.addEventListener('click', async () => {

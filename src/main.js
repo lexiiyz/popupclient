@@ -225,7 +225,9 @@ export class App {
 
         const formatText = (txt) => {
             if (!txt) return '';
-            return txt.replace(/qr code/gi, "<i>$&</i>");
+            // Convert newlines to HTML line breaks and italicize "qr code"
+            let formatted = txt.replace(/\n/g, '<br>');
+            return formatted.replace(/qr code/gi, "<i>$&</i>");
         };
         
         if (type === 'text') {

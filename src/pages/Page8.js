@@ -74,8 +74,15 @@ export class Page8 extends PageBase {
         let cinemaPopups = [];
         let baganPopup = {};
         if (data.popups && data.popups.length > 0) {
-            cinemaPopups = data.popups.slice(0, 2);
-            if (data.popups.length > 2) baganPopup = data.popups[2];
+            // Index 0 (Pertanyaan pemantik) and Index 2 (Video YT) go to CinemaSign
+            cinemaPopups = [data.popups[0]];
+            if (data.popups.length > 2) {
+                cinemaPopups.push(data.popups[2]);
+            }
+            // Index 1 (Struktur Drama / Bagan) goes to BaganSign
+            if (data.popups.length > 1) {
+                baganPopup = data.popups[1];
+            }
         }
         super.update({ ...data, popups: cinemaPopups });
 

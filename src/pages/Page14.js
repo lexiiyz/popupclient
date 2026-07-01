@@ -21,7 +21,7 @@ export class Page14 extends PageBase {
         // Middle Top = Bagan (component) with 1.png
         // Smaller and pushed back (z is negative), and raised on Y-axis
         this.baganSign = new BaganSign(W * 1.1, H * 0.35, '/assets/images/page14/1.png');
-        this.baganSign.mesh.position.set(0, H * 0.35, -H * 0.15);
+        this.baganSign.mesh.position.set(0, H * 0.15, H * 0.05);
         this.group.add(this.baganSign.mesh);
         this.group.userData.elements.push(this.baganSign.mesh);
         
@@ -69,20 +69,20 @@ export class Page14 extends PageBase {
     }
 
     update(data) {
-        // Pass only the popups after index 0 to PageBase so it generates CinemaSigns for them
-        const extraPopups = (data.popups && data.popups.length > 1) ? data.popups.slice(1) : [];
-        super.update({ ...data, popups: extraPopups }); 
+        super.update({ ...data, popups: [] });
 
         if (this.baganSign) {
-            const popupData = (data.popups && data.popups[0]) ? data.popups[0] : {};
+            const baganPopup = (data.popups && data.popups.length > 0)
+                ? data.popups[data.popups.length - 1]
+                : {};
             this.baganSign.updateContent({
-                title: popupData.header || data.title || 'Bagan',
-                audio: popupData.audio || null,
-                text: popupData.text || '',
-                links: popupData.links || [],
-                qrcode: popupData.qrcode || '',
-                image: popupData.image || null,
-                orderNum: popupData.orderNum || ''
+                title: baganPopup.header || data.title || 'Bagan',
+                audio: baganPopup.audio || null,
+                text: baganPopup.text || '',
+                links: baganPopup.links || [],
+                qrcode: baganPopup.qrcode || '',
+                image: baganPopup.image || null,
+                orderNum: baganPopup.orderNum || ''
             });
         }
     }

@@ -13,6 +13,7 @@ export class Page7 extends PageBase {
             this.H * 0.4, 
             {}, 
             "AKTIVITAS 2", 
+            "Unsur Intrinsik dan\nEkstrinsik Drama"
         );
         
         // Position it at the center of the left page
@@ -40,12 +41,6 @@ export class Page7 extends PageBase {
     }
 
     update(data) {
-        const extraPopups = (data.popups && data.popups.length > 1) ? data.popups.slice(1) : [];
-        super.update({ ...data, popups: extraPopups }); 
-
-        if (this.activitySign) {
-            const popupData = (data.popups && data.popups[0]) ? data.popups[0] : {};
-            this.activitySign.updateContent(popupData);
-        }
+        super.update(data);
     }
 }

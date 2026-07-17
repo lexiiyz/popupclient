@@ -77,7 +77,7 @@ export class Book {
 
     _buildCovers() {
         const loader = new THREE.TextureLoader();
-        const coverTex = loader.load('/assets/images/cover.png');
+        const coverTex = loader.load('/assets/images/cover2.png');
         coverTex.colorSpace = THREE.SRGBColorSpace;
 
         const coverColor = 0x8B2500;
